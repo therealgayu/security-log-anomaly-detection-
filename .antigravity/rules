@@ -1,0 +1,38 @@
+# ==============================================================================
+# Antigravity Workspace Rules
+# Security Log Anomaly Detection System (NIIT University Capstone II)
+# ==============================================================================
+
+[PROJECT SCOPE & CONTEXT LOCK]
+1. CONTEXT INITIALIZATION:
+   - Before executing ANY command, creating ANY file, or proposing ANY code, you MUST read and strictly adhere to `PROJECT_CONTEXT.md`.
+   - You are working EXCLUSIVELY on the "Security Log Anomaly Detection System" for NIIT University Capstone II.
+
+2. MEMORY & CROSS-PROJECT ISOLATION:
+   - Ignore ALL memory, knowledge items, snippets, schemas, patterns, and files from any other projects or previous conversations.
+   - Do NOT reference, borrow, or adapt code from unapproved external repositories or past unrelated tasks.
+
+3. STRICT TECH STACK (NO SUBSTITUTIONS):
+   - Frontend: React (Vite)
+   - Backend: Node.js + Express
+   - Database & ODM: MongoDB Atlas (Mongoose)
+   - Authentication: JWT (`jsonwebtoken`), `bcryptjs`, Google Sign-In (`google-auth-library` on backend + Google Identity Services on frontend)
+   - Machine Learning: Python 3.10+, FastAPI, Pandas, scikit-learn (`IsolationForest`)
+   - API Testing & Docs: Postman, Swagger (`swagger-ui-express` & FastAPI OpenAPI docs)
+   - Deployment & DevOps: Nginx, Docker, Kubernetes (`k8s`), Jenkins
+
+4. EXCLUDED FEATURES (STRICTLY FORBIDDEN):
+   Under NO circumstances should any of the following be added or proposed:
+   - NO DAG / evidence graphs or graph databases
+   - NO Jaccard similarity
+   - NO Ollama, LLMs, Gemma, LangChain, or Generative AI
+   - NO Evidence locking or chain-of-custody modules
+   - NO Case builder or case management systems
+   - NO Law-enforcement training features
+   - NO Payments, subscriptions, or billing gateways
+   - NO unlisted or invented features
+
+5. SOURCE OF TRUTH & CODE GENERATION:
+   - Source of truth: `/docs/SRS.docx`, `/docs/SDD.docx`, and `PROJECT_CONTEXT.md`.
+   - Never invent features; adopt the minimal viable implementation and list assumptions.
+   - Always generate 100% FULL and COMPLETE code for every file. Never output placeholders, ellipses (`...`), or truncated blocks.
