@@ -1,5 +1,6 @@
 const Log = require('../models/Log');
 const mlClient = require('../services/mlClient');
+const alertService = require('../services/alertService');
 const AppError = require('../utils/AppError');
 
 /**
@@ -11,7 +12,6 @@ const train = async (req, res, next) => {
     const limit = Math.min(25000, Math.max(10, parseInt(req.body.limit || req.query.limit, 10) || 5000));
     const contamination = req.body.contamination ? parseFloat(req.body.contamination) : null;
 
-    // Fetch historical logs from MongoDB for training
     const logs = await Log.find({})
       .sort({ timestamp: -1 })
       .limit(limit)
@@ -26,7 +26,6 @@ const train = async (req, res, next) => {
       );
     }
 
-    // Format logs for ML service
     const formattedLogs = logs.map((l) => ({
       timestamp: l.timestamp ? l.timestamp.toISOString() : new Date().toISOString(),
       sourceIp: l.sourceIp,
@@ -52,7 +51,8 @@ const train = async (req, res, next) => {
 
 /**
  * POST /api/ml/detect
- * Analyst / Admin: Evaluates stored logs, generates anomaly scores, and updates MongoDB
+ * Analyst / Admin: Evaluates stored logs, generates anomaly scores, updates MongoDB,
+ * and creates prioritized alerts for detected anomalies.
  */
 const detect = async (req, res, next) => {
   try {
@@ -76,7 +76,9 @@ const detect = async (req, res, next) => {
         data: {
           totalEvaluated: 0,
           anomaliesDetected: 0,
-          updatedCount: 0
+          updatedCount: 0,
+          alertsCreated: 0,
+          deduplicatedCount: 0
         }
       });
     }
@@ -94,7 +96,7 @@ const detect = async (req, res, next) => {
 
     const inferenceResult = await mlClient.predictLogs(formattedLogs);
 
-    // Bulk write updates to MongoDB
+    // 1. Bulk update logs in MongoDB with anomaly scores and flags
     const bulkOps = inferenceResult.predictions.map((p) => {
       const originalLog = logs[p.index];
       return {
@@ -114,13 +116,18 @@ const detect = async (req, res, next) => {
       await Log.bulkWrite(bulkOps);
     }
 
+    // 2. Generate security alerts with deduplication and dispatch webhooks
+    const alertResult = await alertService.processAnomaliesToAlerts(logs, inferenceResult.predictions);
+
     res.status(200).json({
       success: true,
-      message: `Anomaly detection evaluation completed. Scored ${inferenceResult.total} logs.`,
+      message: `Anomaly detection evaluation completed. Scored ${inferenceResult.total} logs, generated ${alertResult.alertsCreated} alerts.`,
       data: {
         totalEvaluated: inferenceResult.total,
         anomaliesDetected: inferenceResult.anomaliesDetected,
-        updatedCount: bulkOps.length
+        updatedCount: bulkOps.length,
+        alertsCreated: alertResult.alertsCreated,
+        deduplicatedCount: alertResult.deduplicatedCount
       }
     });
   } catch (error) {
@@ -130,7 +137,6 @@ const detect = async (req, res, next) => {
 
 /**
  * GET /api/ml/info
- * Retrieves ML model metadata and parameters
  */
 const getModelInfo = async (req, res, next) => {
   try {
@@ -146,7 +152,6 @@ const getModelInfo = async (req, res, next) => {
 
 /**
  * GET /api/ml/health
- * Checks ML microservice health status
  */
 const getHealth = async (req, res, next) => {
   try {

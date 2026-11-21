@@ -9,6 +9,8 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const logRoutes = require('./routes/logRoutes');
 const mlRoutes = require('./routes/mlRoutes');
+const alertRoutes = require('./routes/alertRoutes');
+const webhookRoutes = require('./routes/webhookRoutes');
 const healthRoutes = require('./routes/healthRoutes');
 const errorHandler = require('./middleware/errorHandler');
 const AppError = require('./utils/AppError');
@@ -24,7 +26,7 @@ app.use(
     origin: config.corsOrigin,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-API-KEY', 'X-Webhook-Secret', 'X-Signature']
   })
 );
 
@@ -71,6 +73,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/ml', mlRoutes);
+app.use('/api/alerts', alertRoutes);
+app.use('/api/webhooks', webhookRoutes);
 
 // 404 Route Handler
 app.all('*', (req, res, next) => {
