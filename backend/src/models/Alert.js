@@ -1,36 +1,70 @@
 const mongoose = require('mongoose');
 
-// Placeholder schema for Security Alerts (To be fully expanded in Phase 4)
 const alertSchema = new mongoose.Schema(
   {
     logId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Log'
+      ref: 'Log',
+      required: [true, 'Log reference is required'],
+      index: true
     },
-    title: {
+    sourceIp: {
       type: String,
-      required: true,
-      trim: true
+      required: [true, 'Source IP is required'],
+      trim: true,
+      index: true
     },
-    description: {
+    username: {
       type: String,
-      trim: true
+      required: [true, 'Username is required'],
+      trim: true,
+      index: true
     },
     severity: {
       type: String,
-      enum: ['critical', 'high', 'medium', 'low'],
-      default: 'medium'
-    },
-    anomalyScore: {
-      type: Number,
-      default: 0.0
+      enum: {
+        values: ['low', 'medium', 'high', 'critical'],
+        message: '{VALUE} is not a valid severity level'
+      },
+      required: true,
+      index: true
     },
     status: {
       type: String,
-      enum: ['open', 'acknowledged', 'resolved'],
-      default: 'open'
+      enum: {
+        values: ['open', 'acknowledged', 'resolved'],
+        message: '{VALUE} is not a valid alert status'
+      },
+      default: 'open',
+      index: true
     },
-    detectedAt: {
+    reason: {
+      type: String,
+      required: [true, 'Alert reason is required'],
+      trim: true
+    },
+    anomalyScore: {
+      type: Number,
+      required: true,
+      min: 0.0,
+      max: 1.0,
+      index: true
+    },
+    resolvedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
+    resolvedAt: {
+      type: Date,
+      default: null
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+      index: true
+    },
+    updatedAt: {
       type: Date,
       default: Date.now
     }
@@ -39,6 +73,11 @@ const alertSchema = new mongoose.Schema(
     timestamps: true
   }
 );
+
+// Compound indexes for dashboard queries and alert triage
+alertSchema.index({ status: 1, severity: 1, createdAt: -1 });
+alertSchema.index({ sourceIp: 1, createdAt: -1 });
+alertSchema.index({ username: 1, status: 1 });
 
 const Alert = mongoose.model('Alert', alertSchema);
 
