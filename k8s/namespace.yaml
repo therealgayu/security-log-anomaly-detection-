@@ -1,0 +1,13 @@
+# ==============================================================================
+# Security Log Anomaly Detection System (NIIT University Capstone II)
+# Kubernetes Namespace Manifest
+# ==============================================================================
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: slads
+  labels:
+    app.kubernetes.io/name: slads
+    app.kubernetes.io/part-of: security-log-anomaly-detection
+    environment: production

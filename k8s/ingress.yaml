@@ -1,0 +1,50 @@
+# ==============================================================================
+# Security Log Anomaly Detection System (NIIT University Capstone II)
+# Kubernetes Ingress with TLS Termination (Nginx Ingress Controller)
+# Routes /api to backend, / to frontend, and omits /ml (internal only)
+# ==============================================================================
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: slads-ingress
+  namespace: slads
+  labels:
+    app.kubernetes.io/name: slads-ingress
+    app.kubernetes.io/part-of: security-log-anomaly-detection
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "25m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Frame-Options: DENY";
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "X-XSS-Protection: 1; mode=block";
+spec:
+  tls:
+    - hosts:
+        - localhost
+      secretName: slads-tls
+  rules:
+    - host: localhost
+      http:
+        paths:
+          # Proxy API requests to backend Node.js microservice
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: slads-backend
+                port:
+                  number: 5000
+          # Proxy root web requests to React frontend static container
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: slads-frontend
+                port:
+                  number: 80

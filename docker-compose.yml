@@ -1,0 +1,168 @@
+# ==============================================================================
+# Security Log Anomaly Detection System (NIIT University Capstone II)
+# Multi-Container Docker Compose Stack
+# ==============================================================================
+# Services:
+#   - frontend:   React SPA served by internal Nginx (Port 80 internal)
+#   - backend:    Node.js / Express REST API (Port 5000 internal)
+#   - ml-service: Python / FastAPI Isolation Forest Engine (Port 8000 internal)
+#   - nginx:      Edge Reverse Proxy with SSL Termination (Ports 80 & 443 on host)
+#   - mongo:      Optional local MongoDB container (activated via profile: localdb)
+# ==============================================================================
+
+version: '3.8'
+
+services:
+  # ----------------------------------------------------------------------------
+  # Edge Reverse Proxy (Nginx with TLS 1.2/1.3)
+  # ----------------------------------------------------------------------------
+  nginx:
+    image: nginx:alpine
+    container_name: slads-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    networks:
+      - slads-network
+
+  # ----------------------------------------------------------------------------
+  # Frontend Service (React + Vite, SPA served via Nginx)
+  # ----------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: https://localhost/api
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
+    container_name: slads-frontend
+    restart: unless-stopped
+    expose:
+      - "80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://127.0.0.1:80/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - slads-network
+
+  # ----------------------------------------------------------------------------
+  # Backend API Service (Node.js + Express + Mongoose)
+  # ----------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: slads-backend
+    restart: unless-stopped
+    expose:
+      - "5000"
+    env_file:
+      - ./backend/.env.example
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - MONGO_URI=${MONGO_URI:-mongodb+srv://<username>:<password>@cluster0.mongodb.net/security_logs_db?retryWrites=true&w=majority}
+      - JWT_SECRET=${JWT_SECRET:-slads_super_secure_jwt_secret_key_production_2026}
+      - JWT_EXPIRES_IN=7d
+      - CORS_ORIGIN=https://localhost
+      - ML_SERVICE_URL=http://ml-service:8000
+      - ML_API_KEY=${ML_API_KEY:-slads_ml_secret_key_2026}
+      - ALERT_DEDUP_WINDOW_MINUTES=30
+      - ALERT_THRESHOLD_CRITICAL=0.88
+      - ALERT_THRESHOLD_HIGH=0.75
+      - ALERT_THRESHOLD_MEDIUM=0.60
+      - INBOUND_WEBHOOK_SECRET=${INBOUND_WEBHOOK_SECRET:-slads_inbound_secret_2026}
+    depends_on:
+      ml-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5000/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - slads-network
+
+  # ----------------------------------------------------------------------------
+  # Machine Learning Microservice (Python + FastAPI + Isolation Forest)
+  # ----------------------------------------------------------------------------
+  ml-service:
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    container_name: slads-ml-service
+    restart: unless-stopped
+    expose:
+      - "8000"
+    env_file:
+      - ./ml-service/.env.example
+    environment:
+      - ML_PORT=8000
+      - ML_HOST=0.0.0.0
+      - ML_API_KEY=${ML_API_KEY:-slads_ml_secret_key_2026}
+      - MODEL_PATH=models/isolation_forest.joblib
+      - CONTAMINATION_RATE=0.03
+      - RANDOM_STATE=42
+      - ENVIRONMENT=production
+      - LOG_LEVEL=info
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - slads-network
+
+  # ----------------------------------------------------------------------------
+  # Optional Local MongoDB Database (Profile: localdb)
+  # Run with: docker compose --profile localdb up -d
+  # ----------------------------------------------------------------------------
+  mongo:
+    image: mongo:7.0
+    container_name: slads-mongo
+    profiles:
+      - localdb
+    restart: unless-stopped
+    expose:
+      - "27017"
+    environment:
+      - MONGO_INITDB_DATABASE=security_logs_db
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - slads-network
+
+# ------------------------------------------------------------------------------
+# Isolated Bridge Network
+# ------------------------------------------------------------------------------
+networks:
+  slads-network:
+    driver: bridge
+    name: slads-network
+
+# ------------------------------------------------------------------------------
+# Persistent Volumes (Local database storage)
+# ------------------------------------------------------------------------------
+volumes:
+  mongo-data:
+    name: slads-mongo-data

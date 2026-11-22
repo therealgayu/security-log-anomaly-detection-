@@ -1,0 +1,39 @@
+# ==============================================================================
+# Security Log Anomaly Detection System (NIIT University Capstone II)
+# Kubernetes ConfigMap Manifest (Non-sensitive application configuration)
+# ==============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: slads-config
+  namespace: slads
+  labels:
+    app.kubernetes.io/name: slads-config
+    app.kubernetes.io/part-of: security-log-anomaly-detection
+data:
+  # Runtime environment
+  NODE_ENV: "production"
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "info"
+
+  # Network and Service Ports
+  PORT: "5000"
+  ML_PORT: "8000"
+  ML_HOST: "0.0.0.0"
+
+  # Internal Service Discovery URLs
+  ML_SERVICE_URL: "http://slads-ml-service.slads.svc.cluster.local:8000"
+  CORS_ORIGIN: "https://localhost"
+  JWT_EXPIRES_IN: "7d"
+
+  # Anomaly Detection and Alert Thresholds
+  ALERT_DEDUP_WINDOW_MINUTES: "30"
+  ALERT_THRESHOLD_CRITICAL: "0.88"
+  ALERT_THRESHOLD_HIGH: "0.75"
+  ALERT_THRESHOLD_MEDIUM: "0.60"
+
+  # Machine Learning Hyperparameters
+  CONTAMINATION_RATE: "0.03"
+  RANDOM_STATE: "42"
+  MODEL_PATH: "models/isolation_forest.joblib"
