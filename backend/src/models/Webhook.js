@@ -82,8 +82,6 @@ const webhookSchema = new mongoose.Schema(
   }
 );
 
-webhookSchema.index({ active: 1 });
-
 const Webhook = mongoose.model('Webhook', webhookSchema);
 
 module.exports = Webhook;

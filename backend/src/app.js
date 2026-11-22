@@ -14,6 +14,7 @@ const webhookRoutes = require('./routes/webhookRoutes');
 const healthRoutes = require('./routes/healthRoutes');
 const errorHandler = require('./middleware/errorHandler');
 const AppError = require('./utils/AppError');
+const { setupSwagger } = require('./swagger/swaggerSetup');
 
 const app = express();
 
@@ -39,33 +40,34 @@ if (config.nodeEnv !== 'test') {
 app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
-// Global Rate Limiting
-const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 500,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    success: false,
-    error: 'Too many requests from this IP address. Please try again after 15 minutes.'
-  }
-});
-app.use('/api', globalLimiter);
+// Rate Limiting (disabled during tests)
+if (config.nodeEnv !== 'test') {
+  const globalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 500,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+      success: false,
+      error: 'Too many requests from this IP address. Please try again after 15 minutes.'
+    }
+  });
+  app.use('/api', globalLimiter);
 
-// Specific Auth Rate Limiter
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    success: false,
-    error: 'Too many authentication attempts. Please try again after 15 minutes.'
-  }
-});
-app.use('/api/auth/login', authLimiter);
-app.use('/api/auth/register', authLimiter);
-app.use('/api/auth/google', authLimiter);
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+      success: false,
+      error: 'Too many authentication attempts. Please try again after 15 minutes.'
+    }
+  });
+  app.use('/api/auth/login', authLimiter);
+  app.use('/api/auth/register', authLimiter);
+  app.use('/api/auth/google', authLimiter);
+}
 
 // Routes
 app.use('/api/health', healthRoutes);
@@ -75,6 +77,9 @@ app.use('/api/logs', logRoutes);
 app.use('/api/ml', mlRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use('/api/webhooks', webhookRoutes);
+
+// Swagger API Documentation (served before 404 handler)
+setupSwagger(app);
 
 // 404 Route Handler
 app.all('*', (req, res, next) => {
