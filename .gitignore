@@ -82,6 +82,7 @@ build/
 .env.production.local
 *.env
 !*.env.example
+.atlas-credentials.env
 
 # ===============================
 # Logs & Runtime Data
@@ -136,3 +137,8 @@ temp/
 *.bak
 *.swp
 *~
+google-oauth.json
+
+google-oauth.json
+
+google-oauth.json
