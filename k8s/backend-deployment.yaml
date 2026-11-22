@@ -1,0 +1,83 @@
+# ==============================================================================
+# Security Log Anomaly Detection System (NIIT University Capstone II)
+# Backend Microservice Deployment & Service Manifest
+# ==============================================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slads-backend
+  namespace: slads
+  labels:
+    app: slads-backend
+    app.kubernetes.io/name: slads-backend
+    app.kubernetes.io/component: api-backend
+    app.kubernetes.io/part-of: security-log-anomaly-detection
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: slads-backend
+  template:
+    metadata:
+      labels:
+        app: slads-backend
+    spec:
+      containers:
+        - name: slads-backend
+          image: niitcapstone/slads-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 5000
+          envFrom:
+            - configMapRef:
+                name: slads-config
+            - secretRef:
+                name: slads-secrets
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 5000
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: slads-backend
+  namespace: slads
+  labels:
+    app: slads-backend
+    app.kubernetes.io/name: slads-backend
+    app.kubernetes.io/component: api-backend
+spec:
+  type: ClusterIP
+  selector:
+    app: slads-backend
+  ports:
+    - name: http
+      port: 5000
+      targetPort: 5000
