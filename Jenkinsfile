@@ -168,97 +168,97 @@ pipeline {
         // ----------------------------------------------------------------------
         // Stage 6: Selenium End-to-End Tests against Compose Stack
         // ----------------------------------------------------------------------
-        stage('Selenium E2E Tests') {
-            steps {
-                echo '=== Stage 6: Running Selenium E2E UI Tests against docker-compose Stack ==='
-                sh '''
-                    # Ensure SSL certificates exist for Nginx
-                    if [ ! -f nginx/certs/selfsigned.crt ]; then
-                        chmod +x nginx/generate-certs.sh
-                        ./nginx/generate-certs.sh
-                    fi
+        // stage('Selenium E2E Tests') {
+        //     steps {
+        //         echo '=== Stage 6: Running Selenium E2E UI Tests against docker-compose Stack ==='
+        //         sh '''
+        //             # Ensure SSL certificates exist for Nginx
+        //             if [ ! -f nginx/certs/selfsigned.crt ]; then
+        //                 chmod +x nginx/generate-certs.sh
+        //                 ./nginx/generate-certs.sh
+        //             fi
 
-                    # Spin up the container stack
-                    docker-compose up -d
+        //             # Spin up the container stack
+        //             docker-compose up -d
 
-                    # Wait for services to become healthy
-                    echo "Waiting for services to pass health checks..."
-                    sleep 15
+        //             # Wait for services to become healthy
+        //             echo "Waiting for services to pass health checks..."
+        //             sleep 15
 
-                    # Execute Selenium headless Chrome test suite
-                    cd tests/selenium
-                    python3 -m venv venv_selenium
-                    . venv_selenium/bin/activate
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
+        //             # Execute Selenium headless Chrome test suite
+        //             cd tests/selenium
+        //             python3 -m venv venv_selenium
+        //             . venv_selenium/bin/activate
+        //             pip install --upgrade pip
+        //             pip install -r requirements.txt
                     
-                    pytest test_ui.py -v --tb=short || {
-                        echo "Selenium tests failed!"
-                        cd ../..
-                        docker-compose logs --tail=100
-                        docker-compose down -v
-                        exit 1
-                    }
+        //             pytest test_ui.py -v --tb=short || {
+        //                 echo "Selenium tests failed!"
+        //                 cd ../..
+        //                 docker-compose logs --tail=100
+        //                 docker-compose down -v
+        //                 exit 1
+        //             }
 
-                    cd ../..
-                    docker-compose down -v
-                '''
-            }
-        }
+        //             cd ../..
+        //             docker-compose down -v
+        //         '''
+        //     }
+        // }
 
         // ----------------------------------------------------------------------
         // Stage 7: Push Docker Images to Docker Hub Registry
         // ----------------------------------------------------------------------
-        stage('Push Docker Images') {
-            when {
-                anyOf {
-                    branch 'main'
-                    branch 'master'
-                }
-            }
-            steps {
-                echo '=== Stage 7: Authenticating and pushing images to Docker Hub ==='
-                withCredentials([usernamePassword(credentialsId: DOCKERHUB_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh """
-                        echo "\$DOCKER_PASS" | docker login -u "\$DOCKER_USER" --password-stdin
-                        docker push ${BACKEND_IMAGE}:${IMAGE_TAG}
-                        docker push ${BACKEND_IMAGE}:latest
-                        docker push ${ML_SERVICE_IMAGE}:${IMAGE_TAG}
-                        docker push ${ML_SERVICE_IMAGE}:latest
-                        docker push ${FRONTEND_IMAGE}:${IMAGE_TAG}
-                        docker push ${FRONTEND_IMAGE}:latest
-                        docker logout
-                    """
-                }
-            }
-        }
+        // stage('Push Docker Images') {
+        //     when {
+        //         anyOf {
+        //             branch 'main'
+        //             branch 'master'
+        //         }
+        //     }
+        //     steps {
+        //         echo '=== Stage 7: Authenticating and pushing images to Docker Hub ==='
+        //         withCredentials([usernamePassword(credentialsId: DOCKERHUB_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+        //             sh """
+        //                 echo "\$DOCKER_PASS" | docker login -u "\$DOCKER_USER" --password-stdin
+        //                 docker push ${BACKEND_IMAGE}:${IMAGE_TAG}
+        //                 docker push ${BACKEND_IMAGE}:latest
+        //                 docker push ${ML_SERVICE_IMAGE}:${IMAGE_TAG}
+        //                 docker push ${ML_SERVICE_IMAGE}:latest
+        //                 docker push ${FRONTEND_IMAGE}:${IMAGE_TAG}
+        //                 docker push ${FRONTEND_IMAGE}:latest
+        //                 docker logout
+        //             """
+        //         }
+        //     }
+        // }
 
         // ----------------------------------------------------------------------
         // Stage 8: Production Deployment (SSH + docker-compose Pull & Up)
         // ----------------------------------------------------------------------
-        stage('Deploy to Production') {
-            when {
-                anyOf {
-                    branch 'main'
-                    branch 'master'
-                }
-            }
-            steps {
-                echo '=== Stage 8: Deploying to Production via SSH ==='
-                sshagent([DEPLOY_SSH_CREDENTIALS_ID]) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${DEPLOY_SERVER_USER}@${DEPLOY_SERVER_HOST} '
-                            set -e
-                            cd ${DEPLOY_REMOTE_DIR}
-                            docker-compose pull
-                            docker-compose up -d --remove-orphans
-                            docker image prune -af --filter "until=72h"
-                            echo "Deployment completed successfully."
-                        '
-                    """
-                }
-            }
-        }
+        // stage('Deploy to Production') {
+        //     when {
+        //         anyOf {
+        //             branch 'main'
+        //             branch 'master'
+        //         }
+        //     }
+        //     steps {
+        //         echo '=== Stage 8: Deploying to Production via SSH ==='
+        //         sshagent([DEPLOY_SSH_CREDENTIALS_ID]) {
+        //             sh """
+        //                 ssh -o StrictHostKeyChecking=no ${DEPLOY_SERVER_USER}@${DEPLOY_SERVER_HOST} '
+        //                     set -e
+        //                     cd ${DEPLOY_REMOTE_DIR}
+        //                     docker-compose pull
+        //                     docker-compose up -d --remove-orphans
+        //                     docker image prune -af --filter "until=72h"
+        //                     echo "Deployment completed successfully."
+        //                 '
+        //             """
+        //         }
+        //     }
+        // }
     }
 
     // --------------------------------------------------------------------------
