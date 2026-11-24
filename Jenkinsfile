@@ -169,7 +169,7 @@ pipeline {
         // ----------------------------------------------------------------------
         stage('Selenium E2E Tests') {
             steps {
-                echo '=== Stage 6: Running Selenium E2E UI Tests against Docker Compose Stack ==='
+                echo '=== Stage 6: Running Selenium E2E UI Tests against docker-compose Stack ==='
                 sh '''
                     # Ensure SSL certificates exist for Nginx
                     if [ ! -f nginx/certs/selfsigned.crt ]; then
@@ -178,7 +178,7 @@ pipeline {
                     fi
 
                     # Spin up the container stack
-                    docker compose up -d
+                    docker-compose up -d
 
                     # Wait for services to become healthy
                     echo "Waiting for services to pass health checks..."
@@ -194,13 +194,13 @@ pipeline {
                     pytest test_ui.py -v --tb=short || {
                         echo "Selenium tests failed!"
                         cd ../..
-                        docker compose logs --tail=100
-                        docker compose down -v
+                        docker-compose logs --tail=100
+                        docker-compose down -v
                         exit 1
                     }
 
                     cd ../..
-                    docker compose down -v
+                    docker-compose down -v
                 '''
             }
         }
@@ -233,7 +233,7 @@ pipeline {
         }
 
         // ----------------------------------------------------------------------
-        // Stage 8: Production Deployment (SSH + Docker Compose Pull & Up)
+        // Stage 8: Production Deployment (SSH + docker-compose Pull & Up)
         // ----------------------------------------------------------------------
         stage('Deploy to Production') {
             when {
@@ -249,8 +249,8 @@ pipeline {
                         ssh -o StrictHostKeyChecking=no ${DEPLOY_SERVER_USER}@${DEPLOY_SERVER_HOST} '
                             set -e
                             cd ${DEPLOY_REMOTE_DIR}
-                            docker compose pull
-                            docker compose up -d --remove-orphans
+                            docker-compose pull
+                            docker-compose up -d --remove-orphans
                             docker image prune -af --filter "until=72h"
                             echo "Deployment completed successfully."
                         '
@@ -272,7 +272,7 @@ pipeline {
         }
         always {
             echo "Cleaning up workspace and stopped containers..."
-            sh 'docker compose down -v --remove-orphans || true'
+            sh 'docker-compose down -v --remove-orphans || true'
             cleanWs()
         }
     }
