@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import {
   Shield,
   Cpu,
-  Radio,
-  Plus,
-  Trash2,
+  // Radio,
+  // Plus,
+  // Trash2,
   Play,
-  Send,
+  // Send,
   UserCheck,
   CheckCircle,
   AlertTriangle
 } from 'lucide-react';
-import { mlApi, webhooksApi, usersApi } from '../services/api';
+import { mlApi, /* webhooksApi, */ usersApi } from '../services/api';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { ErrorBanner } from '../components/common/ErrorBanner';
 
@@ -27,13 +27,13 @@ export const AdminPage = () => {
   const [targetRole, setTargetRole] = useState('analyst');
   const [userRoleMessage, setUserRoleMessage] = useState(null);
 
-  // Webhook States
-  const [webhooks, setWebhooks] = useState([]);
-  const [webhookUrl, setWebhookUrl] = useState('');
-  const [webhookSecret, setWebhookSecret] = useState('');
-  const [webhookFormat, setWebhookFormat] = useState('standard');
-  const [webhookEvents, setWebhookEvents] = useState(['alert.critical', 'alert.high']);
-  const [webhookMessage, setWebhookMessage] = useState(null);
+  // Webhook States - Commented out
+  // const [webhooks, setWebhooks] = useState([]);
+  // const [webhookUrl, setWebhookUrl] = useState('');
+  // const [webhookSecret, setWebhookSecret] = useState('');
+  // const [webhookFormat, setWebhookFormat] = useState('standard');
+  // const [webhookEvents, setWebhookEvents] = useState(['alert.critical', 'alert.high']);
+  // const [webhookMessage, setWebhookMessage] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -41,13 +41,13 @@ export const AdminPage = () => {
   const loadAdminData = async () => {
     try {
       setError(null);
-      const [infoRes, whRes] = await Promise.all([
-        mlApi.getInfo().catch(() => ({ data: { data: null } })),
-        webhooksApi.getWebhooks()
+      const [infoRes] = await Promise.all([
+        mlApi.getInfo().catch(() => ({ data: { data: null } }))
+        // webhooksApi.getWebhooks()
       ]);
 
       if (infoRes.data?.data) setModelInfo(infoRes.data.data);
-      if (whRes.data?.success) setWebhooks(whRes.data.data.webhooks || []);
+      // if (whRes.data?.success) setWebhooks(whRes.data.data.webhooks || []);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to load admin controls');
     } finally {
@@ -120,6 +120,8 @@ export const AdminPage = () => {
     }
   };
 
+  // Webhook Handlers - Commented out
+  /*
   // Handler: Create Webhook
   const handleCreateWebhook = async (e) => {
     e.preventDefault();
@@ -166,6 +168,7 @@ export const AdminPage = () => {
       setWebhookMessage({ type: 'error', text: 'Test ping failed' });
     }
   };
+  */
 
   if (loading) return <LoadingSpinner message="Loading system settings..." />;
 
@@ -176,7 +179,7 @@ export const AdminPage = () => {
           System Administration
         </h2>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Manage machine learning models, user role permissions, and outbound notification webhooks
+          Manage machine learning models and user role permissions
         </p>
       </div>
 
@@ -302,7 +305,8 @@ export const AdminPage = () => {
         </form>
       </div>
 
-      {/* SECTION 3: Webhook Management */}
+      {/* SECTION 3: Webhook Management - Commented Out */}
+      {/*
       <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-gray-200 dark:border-slate-700 shadow-sm space-y-4">
         <div className="flex items-center space-x-3 border-b border-gray-100 dark:border-slate-700 pb-3">
           <Radio className="w-5 h-5 text-orange-500" />
@@ -322,7 +326,6 @@ export const AdminPage = () => {
           </div>
         )}
 
-        {/* Add Webhook Form */}
         <form onSubmit={handleCreateWebhook} className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-gray-50 dark:bg-slate-750 p-4 rounded-xl">
           <div className="sm:col-span-2">
             <label className="block text-[11px] font-semibold text-gray-500 uppercase mb-1">
@@ -382,7 +385,6 @@ export const AdminPage = () => {
           </div>
         </form>
 
-        {/* Existing Webhooks List */}
         <div className="overflow-x-auto pt-2">
           {webhooks.length === 0 ? (
             <p className="text-xs text-gray-500 text-center py-4">No active webhooks configured.</p>
@@ -434,6 +436,7 @@ export const AdminPage = () => {
           )}
         </div>
       </div>
+      */}
     </div>
   );
 };
