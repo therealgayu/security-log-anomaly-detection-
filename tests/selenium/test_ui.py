@@ -37,6 +37,7 @@ def driver():
     opts.add_argument("--no-sandbox")
     opts.add_argument("--disable-dev-shm-usage")
     opts.add_argument("--window-size=1920,1080")
+    opts.add_argument("--ignore-certificate-errors")
     opts.add_argument("--disable-gpu")
     d = webdriver.Chrome(options=opts)
     d.implicitly_wait(5)
