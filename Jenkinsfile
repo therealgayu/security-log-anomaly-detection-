@@ -38,6 +38,7 @@ pipeline {
         // Test URLs for Selenium Integration
         BASE_URL = 'https://localhost'
         API_URL  = 'https://localhost/api'
+        MONGO_URI = credentials('mongo-uri')
     }
 
     stages {
