@@ -76,7 +76,7 @@ services:
       - MONGO_URI=${MONGO_URI:?MONGO_URI is required}
       - JWT_SECRET=${JWT_SECRET:-slads_super_secure_jwt_secret_key_production_2026}
       - JWT_EXPIRES_IN=7d
-      - CORS_ORIGIN=https://localhost
+      - CORS_ORIGIN=${CORS_ORIGIN:-https://localhost}
       - ML_SERVICE_URL=http://ml-service:8000
       - ML_API_KEY=${ML_API_KEY:-slads_ml_secret_key_2026}
       - ALERT_DEDUP_WINDOW_MINUTES=30
@@ -84,6 +84,7 @@ services:
       - ALERT_THRESHOLD_HIGH=0.75
       - ALERT_THRESHOLD_MEDIUM=0.60
       - INBOUND_WEBHOOK_SECRET=${INBOUND_WEBHOOK_SECRET:-slads_inbound_secret_2026}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
     depends_on:
       ml-service:
         condition: service_healthy
