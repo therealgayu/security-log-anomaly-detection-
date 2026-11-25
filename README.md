@@ -197,18 +197,6 @@ All project contributions must follow the standards outlined in [GIT_WORKFLOW.md
 * **Commit Format**: `<JIRA-KEY>: <type>(<scope>): <subject>` (e.g., `SLAD-101: feat(auth): implement Google OAuth validation`).
 * **Pull Requests**: All features merge into `develop` through peer-reviewed PRs adhering to the PR security checklist.
 
----
-
-## 9. Scope Lock & Excluded Features
-
-As defined in [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md), the following features are **strictly out of scope**:
-* ❌ DAG / Evidence Graphs
-* ❌ Jaccard Similarity
-* ❌ Ollama / LLM / Gemma / Generative AI
-* ❌ Evidence Locking
-* ❌ Case Builder / Case Management
-* ❌ Law-Enforcement Training Features
-* ❌ Payments / Billing Gateways
 
 ---
 
