@@ -6,7 +6,7 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:5000/api", "type": "string" },
+    { "key": "baseUrl", "value": "https://localhost/api", "type": "string" },
     { "key": "token",   "value": "", "type": "string" }
   ],
   "item": [
@@ -58,7 +58,12 @@
                 "exec": [
                   "pm.test('Status 201', () => pm.response.to.have.status(201));",
                   "pm.test('Has token', () => pm.expect(pm.response.json().data).to.have.property('token'));",
-                  "pm.test('User has no passwordHash', () => pm.expect(pm.response.json().data.user).to.not.have.property('passwordHash'));"
+                  "pm.test('User has no passwordHash', () => pm.expect(pm.response.json().data.user).to.not.have.property('passwordHash'));",
+                  "if (pm.response.json().data && pm.response.json().data.user) {",
+                  "  const uid = pm.response.json().data.user._id;",
+                  "  pm.environment.set('userId', uid);",
+                  "  pm.collectionVariables.set('userId', uid);",
+                  "}"
                 ],
                 "type": "text/javascript"
               }
@@ -85,6 +90,7 @@
                   "pm.test('success is true', () => pm.expect(pm.response.json().success).to.be.true);",
                   "pm.test('Has token', () => pm.expect(pm.response.json().data).to.have.property('token'));",
                   "const token = pm.response.json().data.token;",
+                  "pm.environment.set('token', token);",
                   "pm.collectionVariables.set('token', token);",
                   "pm.test('Token saved to variable', () => pm.expect(pm.collectionVariables.get('token')).to.equal(token));"
                 ],
@@ -220,7 +226,9 @@
                   "pm.test('Status 201', () => pm.response.to.have.status(201));",
                   "pm.test('success is true', () => pm.expect(pm.response.json().success).to.be.true);",
                   "pm.test('Log has _id', () => pm.expect(pm.response.json().data.log).to.have.property('_id'));",
-                  "pm.collectionVariables.set('logId', pm.response.json().data.log._id);"
+                  "const logId = pm.response.json().data.log._id;",
+                  "pm.environment.set('logId', logId);",
+                  "pm.collectionVariables.set('logId', logId);"
                 ],
                 "type": "text/javascript"
               }
@@ -477,7 +485,9 @@
                   "pm.test('Status 200', () => pm.response.to.have.status(200));",
                   "pm.test('Has alerts array', () => pm.expect(pm.response.json().data.alerts).to.be.an('array'));",
                   "if (pm.response.json().data.alerts.length > 0) {",
-                  "  pm.collectionVariables.set('alertId', pm.response.json().data.alerts[0]._id);",
+                  "  const alertId = pm.response.json().data.alerts[0]._id;",
+                  "  pm.environment.set('alertId', alertId);",
+                  "  pm.collectionVariables.set('alertId', alertId);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -577,7 +587,9 @@
                 "exec": [
                   "pm.test('Status 201', () => pm.response.to.have.status(201));",
                   "pm.test('Has webhook._id', () => pm.expect(pm.response.json().data.webhook).to.have.property('_id'));",
-                  "pm.collectionVariables.set('webhookId', pm.response.json().data.webhook._id);"
+                  "const webhookId = pm.response.json().data.webhook._id;",
+                  "pm.environment.set('webhookId', webhookId);",
+                  "pm.collectionVariables.set('webhookId', webhookId);"
                 ],
                 "type": "text/javascript"
               }

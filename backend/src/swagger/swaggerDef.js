@@ -17,8 +17,9 @@ const swaggerDefinition = {
     },
   },
   servers: [
-    { url: `http://localhost:${config.port}/api`, description: 'Local development' },
-    { url: 'https://slads.example.com/api', description: 'Production' },
+    { url: '/api', description: 'Default Gateway (Current Host / Docker Nginx)' },
+    { url: 'https://localhost/api', description: 'Docker HTTPS Gateway' },
+    { url: `http://localhost:${config.port}/api`, description: 'Direct Backend (Standalone Node)' },
   ],
   components: {
     securitySchemes: {
